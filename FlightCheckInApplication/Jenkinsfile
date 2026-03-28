@@ -2,8 +2,9 @@ pipeline {
     agent any
     
     environment {
-        DOCKER_REGISTRY = 'adaleshri/flight-checkin-app'
+        DOCKER_REGISTRY = 'adaleshri'
         DOCKER_IMAGE_NAME = 'flight-checkin-app'
+        DOCKER_IMAGE_TAG = "${BUILD_NUMBER}"
         MAVEN_HOME = tool 'Maven'
         JAVA_HOME = tool 'jdk17'
         SONAR_HOST_URL = 'http://13.233.151.142:9000'
@@ -66,8 +67,9 @@ pipeline {
         stage('DOCKER BUILD') {
             steps {
                 dir("${APP_DIR}") {
-                script {
-                    docker.build("${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:LATEST")
+                    script {
+                        docker.build("${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}")
+                    }
                 }
             }
         }
@@ -75,19 +77,29 @@ pipeline {
         stage('DOCKER PUSH') {
             steps {
                 script {
-                    docker.withRegistry("https://${DOCKER_REGISTRY}", 'docker-creds') {
+                    docker.withRegistry('https://index.docker.io/v1/', 'docker-creds') {
                         docker.image("${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}").push()
                     }
                 }
             }
         }
         
-        stage('DEPLOY') {
+        stage('DOCKER DEPLOY') {
             steps {
                 sh '''
-                    kubectl set image deployment/flight-checkin-app \
-                    flight-checkin-app=${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} \
-                    --namespace=flight-checkin
+                echo "Stopping old container..."
+                docker stop flight-checkin-app || true
+                docker rm flight-checkin-app || true
+
+                echo "Pulling latest image..."
+                docker pull ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
+
+                echo "Running new container..."
+                docker run -d \
+                  -p 8080:8080 \
+                  --name flight-checkin-app \
+                  --restart always \
+                  ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
                 '''
             }
         }
@@ -105,4 +117,3 @@ pipeline {
         }
     }
 }
-
