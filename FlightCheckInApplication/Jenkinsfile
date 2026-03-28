@@ -4,7 +4,6 @@ pipeline {
     environment {
         DOCKER_REGISTRY = 'adaleshri/flight-checkin-app'
         DOCKER_IMAGE_NAME = 'flight-checkin-app'
-        DOCKER_IMAGE_TAG = "${BUILD_NUMBER}"
         MAVEN_HOME = tool 'Maven'
         JAVA_HOME = tool 'jdk17'
         SONAR_HOST_URL = 'http://13.233.151.142:9000'
@@ -67,7 +66,7 @@ pipeline {
         stage('DOCKER BUILD') {
             steps {
                 script {
-                    docker.build("${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}")
+                    docker.build("${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}")
                 }
             }
         }
