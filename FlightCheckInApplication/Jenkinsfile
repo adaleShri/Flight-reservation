@@ -20,7 +20,7 @@ pipeline {
         
         stage('BUILD') {
             steps {
-            dir('')
+            dir('FlightReservationApplication/pom.xml')
                 sh '''
                     ${MAVEN_HOME}/bin/mvn clean package -DskipTests
                 '''
