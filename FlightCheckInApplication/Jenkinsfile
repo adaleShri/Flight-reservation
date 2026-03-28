@@ -6,7 +6,7 @@ pipeline {
         DOCKER_IMAGE_NAME = 'flight-checkin-app'
         DOCKER_IMAGE_TAG = "${BUILD_NUMBER}"
         MAVEN_HOME = tool 'Maven'
-        JAVA_HOME = tool 'JDK17'
+        JAVA_HOME = tool 'jdk17'
         SONAR_HOST_URL = 'http://your-sonarqube-server:9000'
         SONAR_TOKEN = credentials('sonar-token')
     }
